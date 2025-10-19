@@ -95,7 +95,7 @@ export default function Chatbox() {
             <ScrollArea className="flex-grow p-4 overflow-y-scroll hide-scrollbar">
                 {messages.length === 0 && (<div className="flex flex-col items-center justify-center h-full">
                     <div className="text-center">
-                        <h1 className="font-semibold text-4xl">Welcome to CogniTalk, You're AI friend!</h1>
+                        <h1 className="font-semibold text-4xl">Welcome to CogniTalk, You&apos;re AI friend!</h1>
                     </div>
                 </div>)}
                 {messages.map(message => (
