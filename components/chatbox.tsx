@@ -20,6 +20,8 @@ export default function Chatbox() {
         content: string;
         sender: 'user' | 'bot';
         timestamp: number;
+        isImage?: boolean;
+
     }
     const [loading, setloading] = useState(false);
     const [prompt, setprompt] = useState('');
@@ -29,16 +31,17 @@ export default function Chatbox() {
 
     useEffect(() => {
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+
     }, [messages]);
+
 
     const handlesend = async () => {
 
         if (prompt.trim() === '' || loading) return;
 
         const userPrompt = prompt.trim();
-        const lowerCasePrompt = userPrompt.toLowerCase(); // 💡 FIX 2: Create a lowercase version for case-insensitive check
+        const lowerCasePrompt = userPrompt.toLowerCase();
 
-        // 1. Create and add the user's message immediately
         const newUserMessage: ChatMessage = {
             id: Date.now().toString() + '-user',
             content: userPrompt,
@@ -47,65 +50,8 @@ export default function Chatbox() {
         };
 
         setmessages(prev => [...prev, newUserMessage]);
-        setloading(true); // Start loading state for both scenarios
+        setloading(true);
         setprompt('');
-
-        // --- Custom Response Interception ---
-
-        // 🛑 FIX 1 & 2: Intercept after adding the user message, using the lowercase variable
-        if (lowerCasePrompt.includes("who built you") || lowerCasePrompt.includes("who made you") || lowerCasePrompt.includes('who develop you') || lowerCasePrompt.includes('who build you') || lowerCasePrompt.includes('who developed you') || lowerCasePrompt.includes('who trained you') || lowerCasePrompt.includes('You are developed by') || lowerCasePrompt.includes(`You're developed by`) || lowerCasePrompt.includes(`You're built by`) || lowerCasePrompt.includes(`You're made by`) || lowerCasePrompt.includes(`You're owned by`)) {
-
-            const customBotMessage: ChatMessage = { // Using the ChatMessage type is good practice
-                id: Date.now().toString() + '-bot',
-                sender: 'bot',
-                content: "Sharath built and trained me.",
-                timestamp: Date.now(),
-            };
-
-            // Delay slightly for a natural typing effect (simulates the AI's "typing...")
-            await new Promise(resolve => setTimeout(resolve, 1500));
-
-            setmessages(prev => [...prev, customBotMessage]);
-            setloading(false);
-            return; // <--- EXIT the function, skipping the API call
-        }
-
-        if (lowerCasePrompt.includes("who owns you")) {
-
-            const customBotMessage: ChatMessage = { // Using the ChatMessage type is good practice
-                id: Date.now().toString() + '-bot',
-                sender: 'bot',
-                content: "CogniTalk owns me which is developed by Sharath!",
-                timestamp: Date.now(),
-            };
-
-            // Delay slightly for a natural typing effect (simulates the AI's "typing...")
-            await new Promise(resolve => setTimeout(resolve, 1500));
-
-            setmessages(prev => [...prev, customBotMessage]);
-            setloading(false);
-            return; // <--- EXIT the function, skipping the API call
-        }
-
-         if (lowerCasePrompt.includes("who is sharath")) {
-
-            const customBotMessage: ChatMessage = { // Using the ChatMessage type is good practice
-                id: Date.now().toString() + '-bot',
-                sender: 'bot',
-                content: "Sharath is the developer of CogniTalk who built me and trained me",
-                timestamp: Date.now(),
-            };
-
-            // Delay slightly for a natural typing effect (simulates the AI's "typing...")
-            await new Promise(resolve => setTimeout(resolve, 1500));
-
-            setmessages(prev => [...prev, customBotMessage]);
-            setloading(false);
-            return; // <--- EXIT the function, skipping the API call
-        }
-
-
-        // --- Gemini API Call ---
 
         try {
             const response = await fetch('/api/chat', {
@@ -114,7 +60,7 @@ export default function Chatbox() {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    prompt: userPrompt // 💡 FIX 3: Use the local variable userPrompt
+                    prompt: userPrompt
                 })
             })
 
@@ -144,6 +90,8 @@ export default function Chatbox() {
         } finally {
             setloading(false);
         }
+
+
     }
 
     return (
