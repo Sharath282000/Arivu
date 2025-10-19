@@ -3,14 +3,11 @@
 import { ScrollArea } from "@radix-ui/react-scroll-area";
 import {
     InputGroup,
-    InputGroupAddon,
     InputGroupButton,
-    InputGroupInput,
     InputGroupTextarea,
 } from "@/components/ui/input-group"
 import { Send } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
-import { timeStamp } from "console";
 
 import ReactMarkdown from 'react-markdown'
 
@@ -40,7 +37,6 @@ export default function Chatbox() {
         if (prompt.trim() === '' || loading) return;
 
         const userPrompt = prompt.trim();
-        const lowerCasePrompt = userPrompt.toLowerCase();
 
         const newUserMessage: ChatMessage = {
             id: Date.now().toString() + '-user',
@@ -104,12 +100,12 @@ export default function Chatbox() {
                 </div>)}
                 {messages.map(message => (
                     <div key={message.id} className={`m-5 flex ${message.sender === 'bot' ? 'justify-start' : 'justify-end'}`}>
-                        <span className={`p-4 border-2 mb-3 break-words rounded-xl max-w-xs sm:max-w-md lg:max-w-xl block
+                        <div className={`p-4 border-2 mb-3 break-words rounded-xl max-w-xs sm:max-w-md lg:max-w-xl block
                             ${message.sender === 'bot' ? ' rounded-tl-none border-blue-300' : 'rounded-tr-none border-blue-600'} [&>pre]:whitespace-pre-wrap [&>pre]:overflow-x-auto [&>p>a]:break-all`}>
                             <ReactMarkdown>
                                 {message.content}
                             </ReactMarkdown>
-                        </span>
+                        </div>
                     </div>
                 ))}
                 {loading && (
