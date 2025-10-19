@@ -95,7 +95,7 @@ export default function Chatbox() {
             <ScrollArea className="flex-grow p-4 overflow-y-scroll hide-scrollbar">
                 {messages.length === 0 && (<div className="flex flex-col items-center justify-center h-full">
                     <div className="text-center">
-                        <h1 className="font-semibold text-4xl">Welcome to CogniTalk, You&apos;re AI friend!</h1>
+                        <h1 className="font-semibold text-xl lg:text-4xl md:text-2xl sm:text-base">Welcome to CogniTalk, You&apos;re AI friendly ChatBot</h1>
                     </div>
                 </div>)}
                 {messages.map(message => (
@@ -133,7 +133,7 @@ export default function Chatbox() {
                 <div className="w-full flex items-center justify-center">
                     <div className="w-full max-w-3xl relative">
                         <InputGroup>
-                            <InputGroupTextarea className="pr-12 min-h-[50px] resize-none" placeholder="Ask anything" value={prompt} onChange={(e) => setprompt(e.target.value)} />
+                            <InputGroupTextarea className="pr-12 min-h-[50px] text-sm resize-none sm:text-base md:text-md lg:text-md" placeholder="Ask anything" value={prompt} onChange={(e) => setprompt(e.target.value)} />
                             <div className="absolute bottom-2 right-2 flex items-end">
                                 <InputGroupButton variant='outline' onClick={handlesend} disabled={!prompt} className="rounded-full h-8 w-8 p-0 border-blue-300"><Send className="h-4 w-4 font-bold text-blue-400" /></InputGroupButton>
                             </div>
