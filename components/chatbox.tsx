@@ -95,13 +95,13 @@ export default function Chatbox() {
             <ScrollArea className="flex-grow p-4 overflow-y-scroll hide-scrollbar">
                 {messages.length === 0 && (<div className="flex flex-col items-center justify-center h-full">
                     <div className="text-center">
-                        <h1 className="font-semibold text-xl lg:text-4xl md:text-2xl sm:text-base">Welcome to CogniTalk, You&apos;re AI friendly ChatBot</h1>
+                        <h1 className="font-light text-lg lg:text-4xl md:text-2xl">Welcome to CogniTalk, You&apos;re AI friendly ChatBot😎</h1>
                     </div>
                 </div>)}
                 {messages.map(message => (
                     <div key={message.id} className={`m-5 flex ${message.sender === 'bot' ? 'justify-start' : 'justify-end'}`}>
-                        <div className={`p-4 border-2 mb-3 break-words rounded-xl max-w-xs sm:max-w-md lg:max-w-xl block
-                            ${message.sender === 'bot' ? ' rounded-tl-none border-blue-300' : 'rounded-tr-none border-blue-600'} [&>pre]:whitespace-pre-wrap [&>pre]:overflow-x-auto [&>p>a]:break-all`}>
+                        <div className={`p-4 border-2 mb-3 text-sm md:text-base break-words rounded-xl max-w-xs sm:max-w-md lg:max-w-xl block
+                            ${message.sender === 'bot' ? ' rounded-tl-none border-gray-500' : 'rounded-tr-none border-gray-200'} [&>pre]:whitespace-pre-wrap [&>pre]:overflow-x-auto [&>p>a]:break-all`}>
                             <ReactMarkdown>
                                 {message.content}
                             </ReactMarkdown>
@@ -133,9 +133,9 @@ export default function Chatbox() {
                 <div className="w-full flex items-center justify-center">
                     <div className="w-full max-w-3xl relative">
                         <InputGroup>
-                            <InputGroupTextarea className="pr-12 min-h-[50px] text-sm resize-none sm:text-base md:text-md lg:text-md" placeholder="Ask anything" value={prompt} onChange={(e) => setprompt(e.target.value)} />
+                            <InputGroupTextarea placeholder="Ask anything" className="pr-12 min-h-[50px] text-sm resize-none md:text-base" value={prompt} onChange={(e) => setprompt(e.target.value)} />
                             <div className="absolute bottom-2 right-2 flex items-end">
-                                <InputGroupButton variant='outline' onClick={handlesend} disabled={!prompt} className="rounded-full h-8 w-8 p-0 border-blue-300"><Send className="h-4 w-4 font-bold text-blue-400" /></InputGroupButton>
+                                <InputGroupButton variant='default' onClick={handlesend} disabled={!prompt} className="rounded-full h-8 w-8 font-extrabold p-0"><Send className="h-4 w-4 font-bold" /></InputGroupButton>
                             </div>
                         </InputGroup>
                     </div>

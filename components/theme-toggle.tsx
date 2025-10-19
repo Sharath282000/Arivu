@@ -14,15 +14,14 @@ export default function Themetoggleicon() {
     }, []);
 
     if (!mounted) {
-        // Return a div placeholder to reserve space and prevent layout shift
         return <div className="h-6 w-6" />;
     }
     return (
-        <div>
+        <div className='h-6'>
             {theme == 'light' ? <span onClick={() => setTheme('dark')} className="mr-4 cursor-pointer">
-                <Moon className="text-blue-400" />
+                <Moon className="h-5 w-5 sm:h-6 sm:w-6" />
             </span> : <span onClick={() => setTheme('light')} className="mr-4 cursor-pointer">
-                <Sun className="text-blue-400" />
+                <Sun className=" h-5 w-5 sm:h-6 sm:w-6" />
             </span>}
         </div>
     )
