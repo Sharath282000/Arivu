@@ -100,7 +100,7 @@ export default function Chatbox() {
                 </div>)}
                 {messages.map(message => (
                     <div key={message.id} className={`m-5 flex ${message.sender === 'bot' ? 'justify-start' : 'justify-end'}`}>
-                        <div className={`p-4 border-2 mb-3 text-sm md:text-base break-words rounded-xl max-w-xs sm:max-w-md lg:max-w-xl block
+                        <div className={`p-4 border-2 mb-3 text-base break-words rounded-xl max-w-xs sm:max-w-md lg:max-w-xl block
                             ${message.sender === 'bot' ? ' rounded-tl-none border-gray-500' : 'rounded-tr-none border-gray-200'} [&>pre]:whitespace-pre-wrap [&>pre]:overflow-x-auto [&>p>a]:break-all`}>
                             <ReactMarkdown>
                                 {message.content}
@@ -111,7 +111,7 @@ export default function Chatbox() {
                 {loading && (
                     <div className="m-5 flex justify-start">
                         <span className={`
-            p-4 mb-3 rounded-xl rounded-tl-none border-blue-300 border-2 
+            p-4 mb-3 rounded-xl rounded-tl-none border-gray-500 border-2 
             max-w-xs text-gray-500 flex items-center italic
              space-x-1
         `}>
