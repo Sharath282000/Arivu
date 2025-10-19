@@ -133,7 +133,7 @@ export default function Chatbox() {
                 <div className="w-full flex items-center justify-center">
                     <div className="w-full max-w-3xl relative">
                         <InputGroup>
-                            <InputGroupTextarea placeholder="Ask anything" className="pr-12 min-h-[50px] text-sm resize-none md:text-base" value={prompt} onChange={(e) => setprompt(e.target.value)} />
+                            <InputGroupTextarea placeholder="Ask anything" className="pr-12 min-h-[50px] text-sm resize-none hide-scrollbar max-h-40 md:text-base" value={prompt} onChange={(e) => setprompt(e.target.value)} />
                             <div className="absolute bottom-2 right-2 flex items-end">
                                 <InputGroupButton variant='default' onClick={handlesend} disabled={!prompt} className="rounded-full h-8 w-8 font-extrabold p-0"><Send className="h-4 w-4 font-bold" /></InputGroupButton>
                             </div>
