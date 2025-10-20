@@ -9,7 +9,7 @@ export default function Navbar() {
             <div className="flex items-center justify-between h-12 px-4">
                 <div className="flex items-center space-x-2 justify-center cursor-pointer">
                     <Image src="/Logo.png" className="w-8 h-8" width='34' height='24' alt="logo" />
-                    <p className="text-md sm:text-xl font-medium tracking-widest leading-none">CogniTalk</p>
+                    <p className="text-xl font-light tracking-wide leading-none">CogniTalk</p>
                 </div>
                 <Themetoggleicon />
             </div>

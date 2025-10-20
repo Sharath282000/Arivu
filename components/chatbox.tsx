@@ -3,6 +3,7 @@
 import { ScrollArea } from "@radix-ui/react-scroll-area";
 import {
     InputGroup,
+    InputGroupAddon,
     InputGroupButton,
     InputGroupTextarea,
 } from "@/components/ui/input-group"
@@ -10,6 +11,15 @@ import { Send } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
 import ReactMarkdown from 'react-markdown'
+
+import { SpeechIcon, CirclePauseIcon } from "lucide-react";
+
+import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
+
+import {
+    Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue,
+} from '@/components/ui/select'
+
 
 export default function Chatbox() {
     interface ChatMessage {
@@ -20,16 +30,77 @@ export default function Chatbox() {
         isImage?: boolean;
 
     }
+    const {
+        transcript,
+        listening,
+        resetTranscript,
+        browserSupportsSpeechRecognition
+    } = useSpeechRecognition();
+
     const [loading, setloading] = useState(false);
     const [prompt, setprompt] = useState('');
     const [messages, setmessages] = useState<ChatMessage[]>([])
+    const [recording, setrecording] = useState(false);
+    const [isClient, setIsClient] = useState(false);
+
+    const LANGUAGE_OPTIONS = {
+        'ta-IN': 'Tamil',
+        'en-IN': 'English',
+        'ml-IN': 'Malayalam',
+        'hi-IN': 'Hindi',
+        'te-IN' : 'Telugu',
+        'kn-IN' : 'Kannada',
+        'mr-IN' : 'Marathi',
+    };
+
+    // 💡 New state for the user's selected language
+    const [selectedLanguage, setSelectedLanguage] = useState('en-IN');
 
     const chatEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
+        setIsClient(true);
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-
     }, [messages]);
+
+    useEffect(() => {
+        if (recording && transcript) {
+            setprompt(transcript);
+        }
+    }, [transcript, recording]);
+
+    useEffect(() => {
+        if (listening) {
+            setrecording(true);
+        }
+
+        else if (recording && !listening) {
+            setrecording(false);
+        }
+    }, [listening, recording]);
+
+    const handlerecord = () => {
+        resetTranscript();
+        try {
+
+            SpeechRecognition.startListening({
+                continuous: true,
+                language: selectedLanguage,
+            })
+        }
+        catch (e) {
+            setrecording(false);
+        }
+
+    }
+
+    const handlerecordstop = () => {
+        try {
+            SpeechRecognition.stopListening()
+        } catch (e) {
+            console.log(e)
+        }
+    }
 
 
     const handlesend = async () => {
@@ -48,6 +119,7 @@ export default function Chatbox() {
         setmessages(prev => [...prev, newUserMessage]);
         setloading(true);
         setprompt('');
+        resetTranscript();
 
         try {
             const response = await fetch('/api/chat', {
@@ -88,6 +160,14 @@ export default function Chatbox() {
         }
 
 
+    }
+
+    if (!isClient) {
+        return <div className="flex flex-col h-[85vh] w-full border rounded-md p-4 items-center justify-center">Loading chat interface...</div>;
+    }
+
+    if (!browserSupportsSpeechRecognition) {
+        return
     }
 
     return (
@@ -139,9 +219,31 @@ export default function Chatbox() {
                                     handlesend()
                                 }
                             }} />
-                            <div className="absolute bottom-2 right-2 flex items-end">
-                                <InputGroupButton variant='default' onClick={handlesend} disabled={!prompt} className="rounded-full h-8 w-8 font-extrabold p-0"><Send className="h-4 w-4 font-bold" /></InputGroupButton>
-                            </div>
+                            <InputGroupAddon align='inline-start'>
+                                <Select value={selectedLanguage} onValueChange={setSelectedLanguage} disabled={listening}>
+                                    <SelectTrigger className="h-8 text-sm w-full focus:ring-0 focus:ring-offset-0">
+                                        <SelectValue placeholder='Choose language' />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectGroup>
+                                            <SelectLabel>Languages</SelectLabel>
+                                            {Object.entries(LANGUAGE_OPTIONS).map(([code,name])=>(
+                                                <SelectItem key={code} value={code}>
+                                                    {name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectGroup>
+                                    </SelectContent>
+                                </Select>
+                            </InputGroupAddon>
+                            <InputGroupAddon align='inline-end'>
+                                <InputGroupButton variant='secondary' onClick={handlesend} disabled={!prompt || recording} className="rounded-full h-8 w-8 font-extrabold p-0 cursor-pointer disabled:cursor-not-allowed"><Send className="h-4 w-4 font-bold" /></InputGroupButton>
+                            </InputGroupAddon>
+                            {!recording ? <InputGroupAddon align='inline-start'>
+                                <InputGroupButton variant='default' className="rounded-full h-8 w-8 font-extrabold p-0 cursor-pointer" onClick={handlerecord}><SpeechIcon className="h-4 w-4 font-bold" /></InputGroupButton>
+                            </InputGroupAddon> : <InputGroupAddon align='inline-start'>
+                                <InputGroupButton variant='destructive' className="rounded-full h-8 w-8 font-extrabold p-0 cursor-pointer" onClick={handlerecordstop}><CirclePauseIcon className="h-4 w-4 font-bold" /></InputGroupButton>
+                            </InputGroupAddon>}
                         </InputGroup>
                     </div>
                 </div>
