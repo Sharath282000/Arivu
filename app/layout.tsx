@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Arivu",
+  title: "Arivu: AI Chatbot, Smart Assistant & Conversational Tool",
   description: "Arivu - An AI powered ChatBot",
   keywords: ['Arivu', 'AI', 'ChatBot', 'Vercel', 'smart assistant', 'conversational AI', 'AI tool','Arivu AI-Powered Chatbot Assistant'],
   openGraph:{

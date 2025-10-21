@@ -48,8 +48,8 @@ export default function Chatbox() {
     const [isClient, setIsClient] = useState(false);
     const [denialToastShown, setDenialToastShown] = useState(false);
     const [messageid, setmessageid] = useState<string | null>(null);
-const [volumid, setvolumeid] = useState<string | null>(null);
-    //const [permission, setpermission] = useState(false);
+    const [volumid, setvolumeid] = useState<string | null>(null);
+    const [permission, setpermission] = useState(false);
 
     const LANGUAGE_OPTIONS = {
         'ta-IN': 'Tamil',
@@ -87,12 +87,17 @@ const [volumid, setvolumeid] = useState<string | null>(null);
             const recognition = SpeechRecognition.getRecognition();
 
             if (recognition) {
+
+                recognition.onstart = () => {
+                    setrecording(true);
+                };
+
                 recognition.onerror = (event) => {
                     const errorType = event.error as string;
 
                     if (errorType === 'not-allowed' || errorType === 'permission-denied') {
-                        setrecording(false);
-                        //setpermission(false)
+                        setpermission(false)
+                        setrecording(false)
 
                         if (!denialToastShown) {
                             setDenialToastShown(true);
@@ -102,6 +107,8 @@ const [volumid, setvolumeid] = useState<string | null>(null);
                     }
                 };
                 return () => {
+
+                    recognition.onstart = null;
                     recognition.onerror = null;
                 };
             }
@@ -110,7 +117,7 @@ const [volumid, setvolumeid] = useState<string | null>(null);
     }, [isClient, setrecording, denialToastShown]);
 
     useEffect(() => {
-        // This runs when the component UNMOUNTS (on refresh/close)
+
         return () => {
             if (typeof window !== 'undefined' && window.speechSynthesis.speaking) {
                 window.speechSynthesis.cancel();
@@ -118,15 +125,14 @@ const [volumid, setvolumeid] = useState<string | null>(null);
         };
     }, []);
 
-    // 🔑 STEP 2: ADD THIS NEW aggressive hook (for when the page LOADS)
+
     useEffect(() => {
-        // This runs immediately when the component MOUNTS (on initial load/refresh)
+
         if (typeof window !== 'undefined' && window.speechSynthesis.speaking) {
-            // Immediately cancel any speech that might have lingered from the previous session.
+
             window.speechSynthesis.cancel();
 
-            // Ensure state is reset in case the component survived a soft reload
-            // (though on a hard refresh, this shouldn't be necessary, it's safer).
+
             setActiveUtterance(null);
             setvolumeid(null);
         }
@@ -157,8 +163,7 @@ const [volumid, setvolumeid] = useState<string | null>(null);
             return;
         }
 
-        // 🔑 If speech is already playing AND the user clicks a DIFFERENT button, 
-        // stop the old one immediately.
+
         if (activeUtterance) {
             handleoffsound();
         }
@@ -225,13 +230,13 @@ const [volumid, setvolumeid] = useState<string | null>(null);
     const handlerecord = () => {
         resetTranscript();
         setDenialToastShown(false);
-        //setpermission(true);
+        setpermission(true);
         try {
             SpeechRecognition.startListening({
                 continuous: true,
                 language: selectedLanguage,
             });
-            setrecording(true);
+
 
         } catch (e) {
             toast.info('Error starting microphone. Please try again later');
@@ -329,9 +334,9 @@ const [volumid, setvolumeid] = useState<string | null>(null);
                     </div>
                 </div>)}
                 {messages?.map(message => (
-                    <div key={message.id} id={message.id} className={`m-5 flex flex-col ${message.sender === 'bot' ? 'items-start' : 'items-end'}`}>
-                        <div className={`p-4 border-2 mb-2 text-base whitespace-break-spaces rounded-xl max-w-xs sm:max-w-md lg:max-w-xl block
-                            ${message.sender === 'bot' ? ' rounded-tl-none border-gray-500' : 'rounded-tr-none border-gray-200'} [&>pre]:whitespace-pre-wrap [&>pre]:overflow-x-auto [&>p>a]:break-all`}>
+                    <div key={message.id} id={message.id} className={`m-5 flex flex-col max-w-[83%] ${message.sender === 'bot' ? 'items-start mr-auto' : 'items-end ml-auto'}`}>
+                        <div className={`p-4 border-2 mb-2 text-base whitespace-break-spaces rounded-xl max-w-full sm:max-w-md lg:max-w-xl block
+                            ${message.sender === 'bot' ? ' rounded-tl-none border-gray-500' : 'rounded-tr-none border-gray-200'} [&>*]:break-words [&>pre]:whitespace-pre-wrap [&>pre]:overflow-x-auto [&>p>a]:break-all`}>
                             <ReactMarkdown>
                                 {message.content}
                             </ReactMarkdown>
@@ -375,7 +380,7 @@ const [volumid, setvolumeid] = useState<string | null>(null);
                                 }
                             }} />
                             <InputGroupAddon align='inline-start' className="w-full sm:w-auto">
-                                <Select value={selectedLanguage} onValueChange={setSelectedLanguage} disabled={recording || activeUtterance? true :false }>
+                                <Select value={selectedLanguage} onValueChange={setSelectedLanguage} disabled={recording || activeUtterance ? true : false}>
                                     <SelectTrigger className="h-8 text-sm w-full focus:ring-0 focus:ring-offset-0">
                                         <SelectValue placeholder='Choose language' />
                                     </SelectTrigger>
@@ -395,7 +400,7 @@ const [volumid, setvolumeid] = useState<string | null>(null);
                                 <InputGroupButton variant='secondary' onClick={handlesend} disabled={!prompt || recording} className="rounded-full h-8 w-full font-extrabold p-0 cursor-pointer disabled:cursor-not-allowed"><Send className="h-4 w-4 font-bold" /></InputGroupButton>
                             </InputGroupAddon>
                             {!recording ? <InputGroupAddon align='inline-start'>
-                                <InputGroupButton variant='default' className="rounded-full h-8 w-8 font-extrabold p-0 cursor-pointer" disabled={activeUtterance? true :false} onClick={handlerecord}><SpeechIcon className="h-4 w-4 font-bold" /></InputGroupButton>
+                                <InputGroupButton variant='default' className="rounded-full h-8 w-8 font-extrabold p-0 cursor-pointer" disabled={activeUtterance ? true : false} onClick={handlerecord}><SpeechIcon className="h-4 w-4 font-bold" /></InputGroupButton>
                             </InputGroupAddon> : <InputGroupAddon align='inline-start'>
                                 <InputGroupButton variant='destructive' className="rounded-full h-8 w-8 font-extrabold p-0 cursor-pointer" onClick={handlerecordstop}><CirclePauseIcon className="h-4 w-4 font-bold" /></InputGroupButton>
                             </InputGroupAddon>}
