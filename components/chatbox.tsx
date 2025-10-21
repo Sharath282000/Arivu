@@ -116,15 +116,6 @@ export default function Chatbox() {
 
     }, [isClient, setrecording, denialToastShown]);
 
-    useEffect(() => {
-
-        return () => {
-            if (typeof window !== 'undefined' && window.speechSynthesis.speaking) {
-                window.speechSynthesis.cancel();
-            }
-        };
-    }, []);
-
 
     useEffect(() => {
 
@@ -143,7 +134,7 @@ export default function Chatbox() {
             await navigator.clipboard.writeText(text);
             setmessageid(id);
             toast.success('Copied to Clipboard', {
-                position: 'bottom-center',
+                //position: 'bottom-center',
                 richColors: false,
             })
         } catch (e) {
@@ -188,7 +179,8 @@ export default function Chatbox() {
             const utterance = new SpeechSynthesisUtterance(chunk);
 
             utterance.rate = 0.95;
-            utterance.pitch = 0.570;
+            utterance.pitch = 1;
+            utterance.volume = 1;
 
             utterance.onend = () => {
                 speakChunks(chunks); // Speak the next chunk when the current one ends
