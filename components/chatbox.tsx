@@ -47,8 +47,8 @@ export default function Chatbox() {
     const [recording, setrecording] = useState(false);
     const [isClient, setIsClient] = useState(false);
     const [denialToastShown, setDenialToastShown] = useState(false);
-    const [messageid, setmessageid] = useState(null);
-    const [volumid, setvolumeid] = useState(null);
+    const [messageid, setmessageid] = useState<string | null>(null);
+const [volumid, setvolumeid] = useState<string | null>(null);
     //const [permission, setpermission] = useState(false);
 
     const LANGUAGE_OPTIONS = {
@@ -132,7 +132,7 @@ export default function Chatbox() {
         }
     }, []);
 
-    const handlecopy = async (text: string, id: any) => {
+    const handlecopy = async (text: string, id: string) => {
         try {
             await navigator.clipboard.writeText(text);
             setmessageid(id);
@@ -150,7 +150,7 @@ export default function Chatbox() {
         }
     }
 
-    const handleonsound = (text: string, id: any) => {
+    const handleonsound = (text: string, id: string) => {
 
         if (activeUtterance && id === volumid) {
             handleoffsound();
