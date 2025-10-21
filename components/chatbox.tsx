@@ -7,7 +7,7 @@ import {
     InputGroupButton,
     InputGroupTextarea,
 } from "@/components/ui/input-group"
-import { Send } from "lucide-react";
+import { Check, Clipboard, Send, Volume2, VolumeX } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
 import ReactMarkdown from 'react-markdown'
@@ -22,6 +22,8 @@ import {
 
 import { toast } from "sonner";
 
+import { Spinner } from "./ui/spinner";
+
 
 export default function Chatbox() {
     interface ChatMessage {
@@ -34,7 +36,7 @@ export default function Chatbox() {
     }
     const {
         transcript,
-        listening,
+        //listening,
         resetTranscript,
         browserSupportsSpeechRecognition
     } = useSpeechRecognition();
@@ -45,6 +47,9 @@ export default function Chatbox() {
     const [recording, setrecording] = useState(false);
     const [isClient, setIsClient] = useState(false);
     const [denialToastShown, setDenialToastShown] = useState(false);
+    const [messageid, setmessageid] = useState(null);
+    const [volumid, setvolumeid] = useState(null);
+    //const [permission, setpermission] = useState(false);
 
     const LANGUAGE_OPTIONS = {
         'ta-IN': 'Tamil',
@@ -60,8 +65,14 @@ export default function Chatbox() {
 
     const chatEndRef = useRef<HTMLDivElement>(null);
 
+    const [activeUtterance, setActiveUtterance] = useState<SpeechSynthesisUtterance | null>(null);
+
+
+
     useEffect(() => {
-        setIsClient(true);
+        setTimeout(() => {
+            setIsClient(true);
+        }, 1500)
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
@@ -76,22 +87,16 @@ export default function Chatbox() {
             const recognition = SpeechRecognition.getRecognition();
 
             if (recognition) {
-
                 recognition.onerror = (event) => {
-
                     const errorType = event.error as string;
 
-
                     if (errorType === 'not-allowed' || errorType === 'permission-denied') {
-
-                        
                         setrecording(false);
+                        //setpermission(false)
 
-                        
-
-                        if(!denialToastShown){
-                         setDenialToastShown(true);
-                         toast.warning("Microphone access denied. Please check browser settings and enable it");
+                        if (!denialToastShown) {
+                            setDenialToastShown(true);
+                            toast.warning("Microphone access denied. Please check browser settings and enable it");
                         }
 
                     }
@@ -104,10 +109,123 @@ export default function Chatbox() {
 
     }, [isClient, setrecording, denialToastShown]);
 
+    useEffect(() => {
+        // This runs when the component UNMOUNTS (on refresh/close)
+        return () => {
+            if (typeof window !== 'undefined' && window.speechSynthesis.speaking) {
+                window.speechSynthesis.cancel();
+            }
+        };
+    }, []);
+
+    // 🔑 STEP 2: ADD THIS NEW aggressive hook (for when the page LOADS)
+    useEffect(() => {
+        // This runs immediately when the component MOUNTS (on initial load/refresh)
+        if (typeof window !== 'undefined' && window.speechSynthesis.speaking) {
+            // Immediately cancel any speech that might have lingered from the previous session.
+            window.speechSynthesis.cancel();
+
+            // Ensure state is reset in case the component survived a soft reload
+            // (though on a hard refresh, this shouldn't be necessary, it's safer).
+            setActiveUtterance(null);
+            setvolumeid(null);
+        }
+    }, []);
+
+    const handlecopy = async (text: string, id: any) => {
+        try {
+            await navigator.clipboard.writeText(text);
+            setmessageid(id);
+            toast.success('Copied to Clipboard', {
+                position: 'bottom-center',
+                richColors: false,
+            })
+        } catch (e) {
+            toast.error('Error occoured while copying, try again later')
+        }
+        finally {
+            setTimeout(() => {
+                setmessageid(null);
+            }, 4000)
+        }
+    }
+
+    const handleonsound = (text: string, id: any) => {
+
+        if (activeUtterance && id === volumid) {
+            handleoffsound();
+            return;
+        }
+
+        // 🔑 If speech is already playing AND the user clicks a DIFFERENT button, 
+        // stop the old one immediately.
+        if (activeUtterance) {
+            handleoffsound();
+        }
+
+        if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+            toast.error("Speech API not available.");
+            return;
+        }
+
+
+        const speakChunks = (chunks: string[]) => {
+            if (chunks.length === 0) {
+                // All chunks spoken
+                setActiveUtterance(null);
+                setvolumeid(null);
+                return;
+            }
+
+            const chunk = chunks.shift(); // Get the next chunk
+            if (!chunk) return;
+
+            const utterance = new SpeechSynthesisUtterance(chunk);
+
+            utterance.rate = 0.95;
+            utterance.pitch = 0.570;
+
+            utterance.onend = () => {
+                speakChunks(chunks); // Speak the next chunk when the current one ends
+            };
+
+            // Set the active utterance to the one currently being spoken
+            setActiveUtterance(utterance);
+            setvolumeid(id);
+
+            window.speechSynthesis.speak(utterance);
+        };
+
+
+        const textChunks = text
+            .split(/(\n+|:[.?!:*])/g)
+            .map(s => s.trim())
+            .filter(s => s.length > 0 && !s.match(/(\n+|:[.?:*!])/g)); // Filter out empty strings and delimiters themselves
+
+
+        speakChunks(textChunks);
+
+
+    };
+
+    const handleoffsound = () => {
+        try {
+            // Cancel any pending or currently speaking utterances
+            window.speechSynthesis.cancel();
+        } catch (e) {
+
+            toast.error('Error occurred while stopping playback.');
+        } finally {
+            // Reset the state regardless of success
+            setActiveUtterance(null);
+            setvolumeid(null);
+        }
+    }
+
     const handlerecord = () => {
         resetTranscript();
         setDenialToastShown(false);
-
+        //setpermission(true);
         try {
             SpeechRecognition.startListening({
                 continuous: true,
@@ -192,13 +310,15 @@ export default function Chatbox() {
     }
 
     if (!isClient) {
-        return <div className="flex flex-col h-[85vh] w-full border rounded-md p-4 items-center justify-center">Loading chat interface...</div>;
+        return <div className="flex flex-col h-[85vh] w-full border rounded-md p-4 items-center justify-center"><Spinner className="size-8" /></div>;
     }
 
     if (!browserSupportsSpeechRecognition) {
         toast.warning("You're browser didn't supported speech recognition, try with other browsers")
         return
     }
+
+
 
     return (
         <div className="flex flex-col h-[85vh] w-full border rounded-md">
@@ -208,13 +328,18 @@ export default function Chatbox() {
                         <h1 className="font-light text-lg lg:text-4xl md:text-2xl">Welcome to CogniTalk, You&apos;re AI friendly ChatBot😎</h1>
                     </div>
                 </div>)}
-                {messages.map(message => (
-                    <div key={message.id} className={`m-5 flex ${message.sender === 'bot' ? 'justify-start' : 'justify-end'}`}>
-                        <div className={`p-4 border-2 mb-3 text-base break-words rounded-xl max-w-xs sm:max-w-md lg:max-w-xl block
+                {messages?.map(message => (
+                    <div key={message.id} id={message.id} className={`m-5 flex flex-col ${message.sender === 'bot' ? 'items-start' : 'items-end'}`}>
+                        <div className={`p-4 border-2 mb-2 text-base whitespace-break-spaces rounded-xl max-w-xs sm:max-w-md lg:max-w-xl block
                             ${message.sender === 'bot' ? ' rounded-tl-none border-gray-500' : 'rounded-tr-none border-gray-200'} [&>pre]:whitespace-pre-wrap [&>pre]:overflow-x-auto [&>p>a]:break-all`}>
                             <ReactMarkdown>
                                 {message.content}
                             </ReactMarkdown>
+                        </div>
+                        <div className="flex flex-row gap-2 text-gray-500 font-bold">
+                            {message.id !== messageid ? <Clipboard onClick={() => handlecopy(message.content, message.id)} className="cursor-pointer h-4.5 w-4.5" /> : <Check className="cursor-pointer h-4.5 w-4.5" />}
+                            {message.id !== volumid ? <Volume2 onClick={() => !activeUtterance && handleonsound(message.content, message.id)} className={`cursor-pointer h-4.5 w-4.5 ${activeUtterance ? 'text-gray-400 cursor-not-allowed' : 'text-gray-500'}`} /> :
+                                <VolumeX onClick={handleoffsound} className="cursor-pointer text-gray-400 h-4.5 w-4.5" />}
                         </div>
                     </div>
                 ))}
@@ -250,7 +375,7 @@ export default function Chatbox() {
                                 }
                             }} />
                             <InputGroupAddon align='inline-start' className="w-full sm:w-auto">
-                                <Select value={selectedLanguage} onValueChange={setSelectedLanguage} disabled={recording}>
+                                <Select value={selectedLanguage} onValueChange={setSelectedLanguage} disabled={recording || activeUtterance? true :false }>
                                     <SelectTrigger className="h-8 text-sm w-full focus:ring-0 focus:ring-offset-0">
                                         <SelectValue placeholder='Choose language' />
                                     </SelectTrigger>
@@ -270,7 +395,7 @@ export default function Chatbox() {
                                 <InputGroupButton variant='secondary' onClick={handlesend} disabled={!prompt || recording} className="rounded-full h-8 w-full font-extrabold p-0 cursor-pointer disabled:cursor-not-allowed"><Send className="h-4 w-4 font-bold" /></InputGroupButton>
                             </InputGroupAddon>
                             {!recording ? <InputGroupAddon align='inline-start'>
-                                <InputGroupButton variant='default' className="rounded-full h-8 w-8 font-extrabold p-0 cursor-pointer" onClick={handlerecord}><SpeechIcon className="h-4 w-4 font-bold" /></InputGroupButton>
+                                <InputGroupButton variant='default' className="rounded-full h-8 w-8 font-extrabold p-0 cursor-pointer" disabled={activeUtterance? true :false} onClick={handlerecord}><SpeechIcon className="h-4 w-4 font-bold" /></InputGroupButton>
                             </InputGroupAddon> : <InputGroupAddon align='inline-start'>
                                 <InputGroupButton variant='destructive' className="rounded-full h-8 w-8 font-extrabold p-0 cursor-pointer" onClick={handlerecordstop}><CirclePauseIcon className="h-4 w-4 font-bold" /></InputGroupButton>
                             </InputGroupAddon>}
