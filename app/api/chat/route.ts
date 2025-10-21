@@ -2,6 +2,8 @@ import { GoogleGenAI, GenerateContentParameters } from "@google/genai";
 
 import { NextResponse } from "next/server";
 
+import {toast} from 'sonner'
+
 export async function POST(request: Request) {
   try {
     const ai = new GoogleGenAI({
@@ -11,6 +13,7 @@ export async function POST(request: Request) {
     const { prompt } = (await request.json()) as { prompt: string };
 
     if (!prompt) {
+      toast.info('Prompt is required')
       return NextResponse.json(
         {
           message: "Prompt is required",
@@ -39,6 +42,7 @@ export async function POST(request: Request) {
       { status: 200 }
     );
   } catch (error) {
+    toast.error('An error occurred while communicating with the AI. Try again later!')
     return NextResponse.json(
       {
         message: "An error occurred while communicating with the AI.",

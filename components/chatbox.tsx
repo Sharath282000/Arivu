@@ -20,6 +20,8 @@ import {
     Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
 
+import { toast } from "sonner";
+
 
 export default function Chatbox() {
     interface ChatMessage {
@@ -42,18 +44,18 @@ export default function Chatbox() {
     const [messages, setmessages] = useState<ChatMessage[]>([])
     const [recording, setrecording] = useState(false);
     const [isClient, setIsClient] = useState(false);
+    const [denialToastShown, setDenialToastShown] = useState(false);
 
     const LANGUAGE_OPTIONS = {
         'ta-IN': 'Tamil',
         'en-IN': 'English',
         'ml-IN': 'Malayalam',
         'hi-IN': 'Hindi',
-        'te-IN' : 'Telugu',
-        'kn-IN' : 'Kannada',
-        'mr-IN' : 'Marathi',
+        'te-IN': 'Telugu',
+        'kn-IN': 'Kannada',
+        'mr-IN': 'Marathi',
     };
 
-    // 💡 New state for the user's selected language
     const [selectedLanguage, setSelectedLanguage] = useState('en-IN');
 
     const chatEndRef = useRef<HTMLDivElement>(null);
@@ -70,36 +72,62 @@ export default function Chatbox() {
     }, [transcript, recording]);
 
     useEffect(() => {
-        if (listening) {
-            setrecording(true);
+        if (isClient && SpeechRecognition.getRecognition()) {
+            const recognition = SpeechRecognition.getRecognition();
+
+            if (recognition) {
+
+                recognition.onerror = (event) => {
+
+                    const errorType = event.error as string;
+
+
+                    if (errorType === 'not-allowed' || errorType === 'permission-denied') {
+
+                        
+                        setrecording(false);
+
+                        
+
+                        if(!denialToastShown){
+                         setDenialToastShown(true);
+                         toast.warning("Microphone access denied. Please check browser settings and enable it");
+                        }
+
+                    }
+                };
+                return () => {
+                    recognition.onerror = null;
+                };
+            }
         }
 
-        else if (recording && !listening) {
-            setrecording(false);
-        }
-    }, [listening, recording]);
+    }, [isClient, setrecording, denialToastShown]);
 
     const handlerecord = () => {
         resetTranscript();
-        try {
+        setDenialToastShown(false);
 
+        try {
             SpeechRecognition.startListening({
                 continuous: true,
                 language: selectedLanguage,
-            })
-        }
-        catch (e) {
+            });
+            setrecording(true);
+
+        } catch (e) {
+            toast.info('Error starting microphone. Please try again later');
             setrecording(false);
         }
-
     }
 
     const handlerecordstop = () => {
         try {
             SpeechRecognition.stopListening()
         } catch (e) {
-            console.log(e)
+            toast.error('Something went wrong, please try again later')
         }
+        setrecording(false);
     }
 
 
@@ -146,6 +174,7 @@ export default function Chatbox() {
 
         } catch (error) {
             const errmessage = "Something went wrong, please try again!"
+            toast.error(errmessage);
 
             const botmsg: ChatMessage = {
                 id: Date.now().toString() + '-bot',
@@ -167,6 +196,7 @@ export default function Chatbox() {
     }
 
     if (!browserSupportsSpeechRecognition) {
+        toast.warning("You're browser didn't supported speech recognition, try with other browsers")
         return
     }
 
@@ -212,22 +242,22 @@ export default function Chatbox() {
             <div className="w-full p-4 border-t bg-background">
                 <div className="w-full flex items-center justify-center">
                     <div className="w-full max-w-3xl relative">
-                        <InputGroup>
+                        <InputGroup className="flex-wrap md:flex-nowrap">
                             <InputGroupTextarea placeholder="Ask anything" className="pr-12 min-h-[50px] text-sm resize-none hide-scrollbar max-h-40 md:text-base" value={prompt} onChange={(e) => setprompt(e.target.value)} onKeyDown={(e) => {
                                 if (e.key === 'Enter') {
                                     e.preventDefault();
                                     handlesend()
                                 }
                             }} />
-                            <InputGroupAddon align='inline-start'>
-                                <Select value={selectedLanguage} onValueChange={setSelectedLanguage} disabled={listening}>
+                            <InputGroupAddon align='inline-start' className="w-full sm:w-auto">
+                                <Select value={selectedLanguage} onValueChange={setSelectedLanguage} disabled={recording}>
                                     <SelectTrigger className="h-8 text-sm w-full focus:ring-0 focus:ring-offset-0">
                                         <SelectValue placeholder='Choose language' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectGroup>
                                             <SelectLabel>Languages</SelectLabel>
-                                            {Object.entries(LANGUAGE_OPTIONS).map(([code,name])=>(
+                                            {Object.entries(LANGUAGE_OPTIONS).map(([code, name]) => (
                                                 <SelectItem key={code} value={code}>
                                                     {name}
                                                 </SelectItem>
@@ -237,7 +267,7 @@ export default function Chatbox() {
                                 </Select>
                             </InputGroupAddon>
                             <InputGroupAddon align='inline-end'>
-                                <InputGroupButton variant='secondary' onClick={handlesend} disabled={!prompt || recording} className="rounded-full h-8 w-8 font-extrabold p-0 cursor-pointer disabled:cursor-not-allowed"><Send className="h-4 w-4 font-bold" /></InputGroupButton>
+                                <InputGroupButton variant='secondary' onClick={handlesend} disabled={!prompt || recording} className="rounded-full h-8 w-full font-extrabold p-0 cursor-pointer disabled:cursor-not-allowed"><Send className="h-4 w-4 font-bold" /></InputGroupButton>
                             </InputGroupAddon>
                             {!recording ? <InputGroupAddon align='inline-start'>
                                 <InputGroupButton variant='default' className="rounded-full h-8 w-8 font-extrabold p-0 cursor-pointer" onClick={handlerecord}><SpeechIcon className="h-4 w-4 font-bold" /></InputGroupButton>
