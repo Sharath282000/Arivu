@@ -325,7 +325,7 @@ const [volumid, setvolumeid] = useState<string | null>(null);
             <ScrollArea className="flex-grow p-4 overflow-y-scroll hide-scrollbar">
                 {messages.length === 0 && (<div className="flex flex-col items-center justify-center h-full">
                     <div className="text-center">
-                        <h1 className="font-light text-lg lg:text-4xl md:text-2xl">Welcome to CogniTalk, You&apos;re AI friendly ChatBot😎</h1>
+                        <h1 className="font-light text-lg lg:text-4xl md:text-2xl">Welcome to Arivu, You&apos;re AI friendly ChatBot😎</h1>
                     </div>
                 </div>)}
                 {messages?.map(message => (
