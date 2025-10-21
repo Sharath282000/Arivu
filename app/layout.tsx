@@ -17,8 +17,22 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CogniTalk",
-  description: "CogniTalk - An AI powered ChatBot",
+  title: "Arivu",
+  description: "Arivu - An AI powered ChatBot",
+  keywords: ['Arivu', 'AI', 'ChatBot', 'Vercel', 'smart assistant', 'conversational AI', 'AI tool','Arivu AI-Powered Chatbot Assistant'],
+  openGraph:{
+    title: "Arivu: Your AI-Powered Chatbot Assistant",
+      description: "Arivu is a modern, fast AI chatbot built on Vercel. Get instant, accurate answers and smart conversation features right from your browser.",
+      url: 'https://arivu-ai.vercel.app/',
+      siteName: 'Arivu AI ChatBot',
+      images: ['https://arivu-ai.vercel.app/_next/image?url=%2FLogo.png&w=96&q=75']
+  },
+  twitter: {
+        card: 'summary_large_image', 
+        title: "Arivu: Your AI-Powered Chatbot Assistant",
+        description: "Arivu is a modern, fast AI chatbot. Get instant, accurate answers and smart conversation features right from your browser.",
+        images: ['https://arivu-ai.vercel.app/_next/image?url=%2FLogo.png&w=96&q=75'],
+    },
 };
 
 export default function RootLayout({
