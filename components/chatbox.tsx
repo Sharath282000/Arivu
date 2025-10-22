@@ -365,12 +365,7 @@ export default function Chatbox() {
                 <div className="w-full flex items-center justify-center">
                     <div className="w-full max-w-3xl relative">
                         <InputGroup className="flex-wrap md:flex-nowrap">
-                            <InputGroupTextarea placeholder="Ask anything" className="pr-12 min-h-[50px] text-sm resize-none hide-scrollbar max-h-40 md:text-base" value={prompt} onChange={(e) => setprompt(e.target.value)} onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                    e.preventDefault();
-                                    handlesend()
-                                }
-                            }} />
+                            <InputGroupTextarea placeholder="Ask anything" className="pr-12 min-h-[50px] text-sm resize-none hide-scrollbar max-h-40 md:text-base" value={prompt} onChange={(e) => setprompt(e.target.value)} />
                             <InputGroupAddon align='inline-start' className="w-full sm:w-auto">
                                 <Select value={selectedLanguage} onValueChange={setSelectedLanguage} disabled={recording || activeUtterance ? true : false}>
                                     <SelectTrigger className="h-8 text-sm w-full focus:ring-0 focus:ring-offset-0">
